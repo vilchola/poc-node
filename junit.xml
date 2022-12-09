@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="7" failures="0" errors="0" time="20.162">
+  <testsuite name="createTransaction" errors="0" failures="0" skipped="0" timestamp="2022-12-08T03:27:45" time="17.756" tests="2">
+    <testcase classname="createTransaction testing lambda: createTransaction - Bad request" name="createTransaction testing lambda: createTransaction - Bad request" time="0.005">
+    </testcase>
+    <testcase classname="createTransaction testing lambda: createTransaction - Transaction created successfully" name="createTransaction testing lambda: createTransaction - Transaction created successfully" time="0.01">
+    </testcase>
+  </testsuite>
+  <testsuite name="validateTransaction" errors="0" failures="0" skipped="0" timestamp="2022-12-08T03:27:45" time="17.818" tests="3">
+    <testcase classname="validateTransaction testing lambda: validateTransaction - Invalid message" name="validateTransaction testing lambda: validateTransaction - Invalid message" time="0.005">
+    </testcase>
+    <testcase classname="validateTransaction testing lambda: validateTransaction - Transaction approved" name="validateTransaction testing lambda: validateTransaction - Transaction approved" time="0.014">
+    </testcase>
+    <testcase classname="validateTransaction testing lambda: validateTransaction - Transaction rejected" name="validateTransaction testing lambda: validateTransaction - Transaction rejected" time="0.001">
+    </testcase>
+  </testsuite>
+  <testsuite name="updateTransaction" errors="0" failures="0" skipped="0" timestamp="2022-12-08T03:27:45" time="18.796" tests="2">
+    <testcase classname="updateTransaction testing lambda: updateTransaction - Invalid message" name="updateTransaction testing lambda: updateTransaction - Invalid message" time="0.004">
+    </testcase>
+    <testcase classname="updateTransaction testing lambda: updateTransaction - Transaction updated" name="updateTransaction testing lambda: updateTransaction - Transaction updated" time="0.008">
+    </testcase>
+  </testsuite>
+</testsuites>

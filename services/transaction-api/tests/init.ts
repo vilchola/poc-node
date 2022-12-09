@@ -1,0 +1,11 @@
+process.env.ACCOUNT_ID = '123456789012';
+process.env.REGION = 'us-east-1';
+process.env.STAGE = 'dev';
+process.env.LOGGER_LEVEL = 'DEBUG';
+process.env.AWS_NODEJS_CONNECTION_REUSE_ENABLED = '1';
+process.env.TABLE = 'poc-node-transaction-dev';
+process.env.TOPIC = 'poc-node-transaction-dev';
+process.env.TOPIC_BROKERS = 'localhost:9092';
+process.env.TOPIC_MECHANISM = 'scram-sha-256';
+process.env.TOPIC_USERNAME = 'username';
+process.env.TOPIC_PASSWORD = 'password';

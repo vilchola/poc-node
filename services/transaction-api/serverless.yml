@@ -1,0 +1,134 @@
+service: poc-node
+
+custom:
+  bucket:
+    name: poc-serverless
+    project: poc-node
+  logger:
+    level:
+      dev: DEBUG
+      prd: INFO
+  table:
+    name: ${self:service}-transaction-${self:provider.stage}
+  topic:
+    name: ${self:service}-transaction-${self:provider.stage}
+    secretArn: !GetAtt UpstashSecret.Arn
+    brokers: '<ENTER_TOPIC_BROKERS_LIST>'
+    consumerGroupId1: ${self:service}-transaction-created
+    consumerGroupId2: ${self:service}-transaction-validated
+    mechanism: scram-sha-256
+    username: '<ENTER_TOPIC_USERNAME>'
+    password: '<ENTER_TOPIC_PASSWORD>'
+
+plugins:
+  - serverless-esbuild
+  - serverless-offline
+  - serverless-cloudformation-sub-variables
+
+provider:
+  name: aws
+  region: ${opt:region, 'us-east-1'}
+  runtime: nodejs16.x
+  memorySize: 128
+  stage: ${opt:stage, 'dev'}
+  endpointType: regional
+  deploymentBucket:
+    name: ${self:custom.bucket.name}
+    maxPreviousDeploymentArtifacts: 3
+    serverSideEncryption: AES256
+  deploymentPrefix: ${self:custom.bucket.project}
+  logRetentionInDays: 7
+  versionFunctions: false
+  environment:
+    ACCOUNT_ID: '#{AWS::AccountId}'
+    REGION: ${self:provider.region}
+    STAGE: ${self:provider.stage}
+    LOGGER_LEVEL: ${self:custom.logger.level.${self:provider.stage}}
+    AWS_NODEJS_CONNECTION_REUSE_ENABLED: 1
+    NODE_TLS_REJECT_UNAUTHORIZED: 0
+    TABLE: ${self:custom.table.name}
+    TOPIC: ${self:custom.topic.name}
+    TOPIC_BROKERS: ${self:custom.topic.brokers}
+    TOPIC_MECHANISM: ${self:custom.topic.mechanism}
+    TOPIC_USERNAME: ${self:custom.topic.username}
+    TOPIC_PASSWORD: ${self:custom.topic.password}
+  apiGateway:
+    resourcePolicy:
+      - Effect: Allow
+        Principal: '*'
+        Action: execute-api:Invoke
+        Resource:
+          - execute-api:/*/*/*
+  tracing:
+    lambda: true
+    apiGateway: true
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+          Resource: !GetAtt TransactionTable.Arn
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource: !GetAtt UpstashSecret.Arn
+
+functions:
+  createTransaction:
+    handler: src/controller/createTransaction.handler
+    events:
+      - http:
+          path: /transaction
+          method: post
+
+  validateTransaction:
+    handler: src/controller/validateTransaction.handler
+    events:
+      - kafka:
+          accessConfigurations:
+            saslScram256Auth: ${self:custom.topic.secretArn}
+          bootstrapServers:
+            - ${self:custom.topic.brokers}
+          topic: ${self:custom.topic.name}
+          startingPosition: LATEST
+          consumerGroupId: ${self:custom.topic.consumerGroupId1}
+          filterCriteria:
+            filters:
+              - pattern: '{ \"key\": [ {\"prefix\":\"create-\"} ] }'
+
+  updateTransaction:
+    handler: src/controller/updateTransaction.handler
+    events:
+      - kafka:
+          accessConfigurations:
+            saslScram256Auth: ${self:custom.topic.secretArn}
+          bootstrapServers:
+            - ${self:custom.topic.brokers}
+          topic: ${self:custom.topic.name}
+          startingPosition: LATEST
+          consumerGroupId: ${self:custom.topic.consumerGroupId2}
+          filterCriteria:
+            filters:
+              - pattern: '{ \"key\": [ {\"prefix\":\"validate-\"} ] }'
+
+resources:
+  Resources:
+    TransactionTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:custom.table.name}
+        AttributeDefinitions:
+          - AttributeName: transactionExternalId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: transactionExternalId
+            KeyType: HASH
+        BillingMode: PAY_PER_REQUEST
+
+    UpstashSecret:
+      Type: AWS::SecretsManager::Secret
+      Properties:
+        Name: /${self:provider.stage}/upstash/credentials
+        SecretString: '{"username":"${self:custom.topic.username}","password":"${self:custom.topic.password}"}'

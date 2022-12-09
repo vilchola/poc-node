@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "strictNullChecks": true,
+    "experimentalDecorators": true,
+    "resolveJsonModule": true,
+    "removeComments": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "outDir": "lib"
+  },
+  "include": ["./**/*.ts", "./libs/*.ts"],
+  "exclude": ["node_modules/**/*", ".serverless/**/*"]
+}

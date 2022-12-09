@@ -1,0 +1,10 @@
+{
+  "version": "0.0.0",
+  "name": "transaction-api",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "package": "node",
+    "offline": "node"
+  }
+}
